@@ -45,7 +45,7 @@ docker compose ps
 docker compose logs -f web
 ```
 
-เข้าใช้งานที่ `http://127.0.0.1:8091/login` หรือโดเมน HTTPS ที่ผูกผ่าน
+เข้าใช้งานที่ `http://127.0.0.1:8092/login` หรือโดเมน HTTPS ที่ผูกผ่าน
 Cloudflare Tunnel
 
 > หากทดสอบผ่าน HTTP ในเครื่อง ให้ตั้ง `WEB_COOKIE_SECURE=false` ชั่วคราว
@@ -57,11 +57,19 @@ Cloudflare Tunnel
 - `status-scheduler` — ตรวจสถานะจาก Google Sheet ทุกชั่วโมง 08:00–22:00
 - `shopee-sync` — โปรไฟล์เสริมสำหรับดาวน์โหลด Shopee Sell Report และอัปเดต
   Mapping (ไม่เริ่มโดยอัตโนมัติ)
+- `pi-router` — โปรไฟล์เฉพาะ Pi สำหรับให้หน้าลูกค้าเดิมกับหน้า CS ใช้โดเมนเดียวกัน
+  โดยแยก backend คนละ service
 
 เปิด Shopee automation เมื่อเตรียม browser session แล้ว:
 
 ```bash
 docker compose --profile shopee up -d --build
+```
+
+บน Pi ที่มี customer backend เดิมอยู่ที่ port `8093`:
+
+```bash
+docker compose --profile pi-router up -d --build
 ```
 
 สำหรับเครื่อง RAM น้อย แนะนำให้รันเฉพาะ `web` และ `status-scheduler` ก่อน เพราะ
