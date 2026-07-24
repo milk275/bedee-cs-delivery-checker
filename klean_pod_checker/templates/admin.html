@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>ตรวจระบบ · BeDee Fulfilment</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css', v='20260724a') }}">
+  <script defer src="{{ url_for('static', filename='admin.js', v='20260724a') }}"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('dashboard') }}" aria-label="BeDee Fulfilment Delivery Checker">
+      <img class="brand-logo" src="{{ url_for('static', filename='bedee-logo.png', v='20260717') }}" alt="BeDee Powered by BDMS">
+    </a>
+    <nav class="topbar-actions" aria-label="เมนูหลัก">
+      <a class="topbar-link" href="{{ url_for('dashboard') }}">หน้าค้นหา</a>
+      <form method="post" action="{{ url_for('logout') }}">
+        <button class="text-button" type="submit">ออกจากระบบ</button>
+      </form>
+    </nav>
+  </header>
+
+  <main class="page-shell admin-shell">
+    <section class="admin-heading">
+      <div>
+        <p class="eyebrow">SYSTEM MONITOR</p>
+        <h1>ตรวจสุขภาพระบบ</h1>
+        <p>ดูการเชื่อมต่อแบบ Real-time ของขนส่ง Google Sheet, Apps Script, Supabase และบอท Shopee จากหน้าเดียว</p>
+      </div>
+      <button id="health-refresh" class="secondary-button" type="button">ตรวจใหม่</button>
+    </section>
+
+    <section id="health-overview" class="health-overview loading" aria-live="polite">
+      <span class="health-overview-dot" aria-hidden="true"></span>
+      <div>
+        <strong id="health-overview-title">กำลังตรวจทุกระบบ…</strong>
+        <span id="health-overview-detail">การตรวจครั้งแรกอาจใช้เวลาประมาณ 10–15 วินาที</span>
+      </div>
+    </section>
+
+    <div id="health-error" class="alert hidden" role="alert"></div>
+
+    <section class="health-section" aria-labelledby="carrier-health-heading">
+      <div class="health-section-heading">
+        <div>
+          <p class="eyebrow">LIVE CONNECTION</p>
+          <h2 id="carrier-health-heading">การเชื่อมต่อขนส่ง</h2>
+        </div>
+        <span>ทดสอบบัญชีและปลายทางแบบ Real-time</span>
+      </div>
+      <div id="carrier-health-grid" class="health-grid">
+        <div class="health-skeleton"></div>
+        <div class="health-skeleton"></div>
+        <div class="health-skeleton"></div>
+      </div>
+    </section>
+
+    <section class="health-section" aria-labelledby="automation-health-heading">
+      <div class="health-section-heading">
+        <div>
+          <p class="eyebrow">DATA &amp; AUTOMATION</p>
+          <h2 id="automation-health-heading">ข้อมูลและระบบอัตโนมัติ</h2>
+        </div>
+        <span>ตรวจการเชื่อมต่อและเวลาทำงานล่าสุด</span>
+      </div>
+      <div id="automation-health-grid" class="health-grid automation-grid">
+        <div class="health-skeleton"></div>
+        <div class="health-skeleton"></div>
+        <div class="health-skeleton"></div>
+      </div>
+    </section>
+
+    <p class="admin-footnote">
+      หน้านี้ไม่แสดงรหัสผ่านหรือ secret และเก็บผลตรวจไว้ชั่วคราวเพื่อลดการเรียกบริการภายนอกซ้ำ
+    </p>
+  </main>
+
+  <footer>BeDee Fulfilment · System Monitor</footer>
+</body>
+</html>

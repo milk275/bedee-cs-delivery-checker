@@ -333,7 +333,7 @@ async function refreshOrder(orderNumber, trigger) {
   const original = trigger.textContent;
   trigger.disabled = true;
   trigger.textContent = "กำลังตรวจ…";
-  document.querySelector("#dialog-note").textContent = "กำลังดึงข้อมูลสดจากระบบขนส่ง";
+  document.querySelector("#dialog-note").textContent = "กำลังดึงข้อมูล Real-time จากระบบขนส่ง";
   try {
     const response = await fetch("/api/check", {
       method: "POST",
@@ -364,7 +364,7 @@ async function refreshOrder(orderNumber, trigger) {
         ? `บันทึก Google Sheet แล้ว ${payload.sheet_sync.updated_rows} แถว`
         : "ตรวจข้อมูลสำเร็จ แต่บันทึก Google Sheet ไม่สำเร็จ ระบบจะลองใหม่รอบถัดไป";
     } else {
-      document.querySelector("#dialog-note").textContent = "อัปเดตข้อมูลสดเรียบร้อยแล้ว";
+      document.querySelector("#dialog-note").textContent = "อัปเดตข้อมูล Real-time เรียบร้อยแล้ว";
     }
   } catch (error) {
     document.querySelector("#dialog-note").textContent = error.message || "เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่";

@@ -27,6 +27,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
+from .admin_health import AdminHealthService
 from .config import Settings
 from .interexpress import InterexpressClient, InterexpressError
 from .kex import KEX_TRACKING_RE, KexClient, KexError
@@ -364,6 +365,7 @@ def create_app(
     mapping_store: Any | None = None,
     status_cache: Any | None = None,
     multiple_tracking_sync: Callable[[], int] | None = None,
+    admin_health_service: Any | None = None,
 ) -> Flask:
     settings = settings or Settings.from_env(require_credentials=True)
     if not settings.cs_access_pin_hash:
@@ -401,6 +403,7 @@ def create_app(
             timeout=settings.request_timeout_seconds,
         )
     )
+    admin_health = admin_health_service or AdminHealthService(settings)
     login_limiter = SlidingWindowLimiter(limit=8, seconds=10 * 60)
     search_limiter = SlidingWindowLimiter(limit=30, seconds=60)
 
@@ -462,6 +465,16 @@ def create_app(
             "dashboard.html",
             summary=_report_summary(settings.output_dir / "latest.csv"),
         )
+
+    @app.get("/admin")
+    @_login_required()
+    def admin():
+        return render_template("admin.html")
+
+    @app.get("/api/admin/health")
+    @_login_required(api=True)
+    def admin_health_snapshot():
+        return jsonify(admin_health.snapshot())
 
     @app.post("/api/check")
     @_login_required(api=True)

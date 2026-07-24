@@ -63,6 +63,11 @@ class Settings:
     supabase_secret_key: str = ""
     supabase_mapping_table: str = "shopee_order_mapping"
     supabase_status_table: str = "tracking_status_cache"
+    shopee_report_directory: Path = PROJECT_ROOT / "runtime" / "shopee-reports"
+    shopee_report_manifest: Path = (
+        PROJECT_ROOT / "runtime" / "shopee-reports" / "latest-report-manifest.json"
+    )
+    admin_health_cache_seconds: int = 60
 
     @property
     def sheet_csv_url(self) -> str:
@@ -122,6 +127,21 @@ class Settings:
             supabase_status_table=os.environ.get(
                 "SUPABASE_STATUS_TABLE", "tracking_status_cache"
             ).strip(),
+            shopee_report_directory=_path(
+                os.environ.get(
+                    "SHOPEE_REPORT_DIRECTORY",
+                    "./runtime/shopee-reports",
+                )
+            ),
+            shopee_report_manifest=_path(
+                os.environ.get(
+                    "SHOPEE_REPORT_MANIFEST",
+                    "./runtime/shopee-reports/latest-report-manifest.json",
+                )
+            ),
+            admin_health_cache_seconds=max(
+                15, int(os.environ.get("ADMIN_HEALTH_CACHE_SECONDS", "60"))
+            ),
         )
         if require_credentials:
             missing = []

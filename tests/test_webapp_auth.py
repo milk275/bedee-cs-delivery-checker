@@ -28,6 +28,16 @@ class FakeSearch:
         raise AssertionError("search should not run in auth tests")
 
 
+class FakeAdminHealth:
+    def snapshot(self):
+        return {
+            "overall": "ok",
+            "checked_at": "2026-07-24T12:00:00+07:00",
+            "counts": {"ok": 1, "warning": 0, "error": 0},
+            "checks": [],
+        }
+
+
 def settings(tmp_path: Path) -> Settings:
     return Settings(
         sheet_id="test-sheet",
@@ -60,6 +70,7 @@ def app(tmp_path):
         mapping_store=FakeMappings(),
         status_cache=FakeStatusCache(),
         multiple_tracking_sync=lambda: 0,
+        admin_health_service=FakeAdminHealth(),
     )
     result.config["TESTING"] = True
     return result
@@ -67,7 +78,14 @@ def app(tmp_path):
 
 def test_cs_pages_redirect_to_login(tmp_path):
     client = app(tmp_path).test_client()
-    for path in ("/", "/dashboard", "/report", "/latest.html", "/download/latest.csv"):
+    for path in (
+        "/",
+        "/dashboard",
+        "/admin",
+        "/report",
+        "/latest.html",
+        "/download/latest.csv",
+    ):
         response = client.get(path)
         assert response.status_code == 302
         assert "/login" in response.headers["Location"]
@@ -101,3 +119,17 @@ def test_health_is_public_but_api_is_protected(tmp_path):
     assert client.get("/health").get_json() == {"status": "ok"}
     api = client.post("/api/check", json={"order": "test"})
     assert api.status_code == 401
+    assert client.get("/api/admin/health").status_code == 401
+
+
+def test_admin_page_and_health_api_require_valid_session(tmp_path):
+    client = app(tmp_path).test_client()
+    client.post("/login", data={"pin": "safe-test-pin"})
+
+    page = client.get("/admin")
+    assert page.status_code == 200
+    assert "ตรวจสุขภาพระบบ".encode() in page.data
+
+    payload = client.get("/api/admin/health")
+    assert payload.status_code == 200
+    assert payload.get_json()["overall"] == "ok"

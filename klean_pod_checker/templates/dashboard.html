@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <title>BeDee Fulfilment · Delivery Checker</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='app.css', v='20260717b') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css', v='20260724a') }}">
   <script defer src="{{ url_for('static', filename='app.js', v='20260717a') }}"></script>
 </head>
 <body>
@@ -13,9 +13,12 @@
     <a class="brand" href="/" aria-label="BeDee Fulfilment Delivery Checker">
       <img class="brand-logo" src="{{ url_for('static', filename='bedee-logo.png', v='20260717') }}" alt="BeDee Powered by BDMS">
     </a>
-    <form method="post" action="{{ url_for('logout') }}">
-      <button class="text-button" type="submit">ออกจากระบบ</button>
-    </form>
+    <nav class="topbar-actions" aria-label="เมนูหลัก">
+      <a class="topbar-link" href="{{ url_for('admin') }}">ตรวจระบบ</a>
+      <form method="post" action="{{ url_for('logout') }}">
+        <button class="text-button" type="submit">ออกจากระบบ</button>
+      </form>
+    </nav>
   </header>
 
   <main class="page-shell">
@@ -25,7 +28,7 @@
         <h1>เช็กสถานะออเดอร์ได้ทันที</h1>
         <p>วางเลขเต็มจากชีต หรือใส่เฉพาะเลขงาน แล้วกดตรวจสอบ</p>
       </div>
-      <div class="live-chip"><span></span> ตรวจข้อมูลสด</div>
+      <div class="live-chip"><span></span> ตรวจข้อมูล Real-time</div>
     </section>
 
     <section class="search-panel" aria-labelledby="search-heading">

@@ -11,6 +11,7 @@ Repository นี้เป็น **CS-only**:
 - สถานะแคชและ Mapping อยู่บน Supabase ไม่มี SQLite
 - ผล Skyfrog จะตัดรูปที่ 1–2 ซึ่งเป็นลายเซ็นออกก่อนแสดง
 - งานตรวจสถานะอัตโนมัติรันรายชั่วโมง 08:00–22:00 (เวลาไทย)
+- หน้า `/admin` ตรวจการเชื่อมต่อแบบ Real-time และเวลารอบล่าสุด โดยไม่แสดง secret
 
 ## เริ่มใช้งานด้วย Docker Compose
 
@@ -47,6 +48,17 @@ docker compose logs -f web
 
 เข้าใช้งานที่ `http://127.0.0.1:8091/login` หรือโดเมน HTTPS ที่ผูกผ่าน
 Cloudflare Tunnel
+
+หลังเข้าสู่ระบบ เปิด `/admin` เพื่อตรวจ Skyfrog, KEX, InterExpress, Google Sheet,
+Apps Script, Supabase, รายงานรายชั่วโมง และ Shopee Bot → Supabase หน้าเว็บจะ
+แยกเวลา “ดาวน์โหลด Shopee ล่าสุด” ออกจาก “นำเข้า Supabase ล่าสุด” เพื่อไม่ให้
+การนำไฟล์เก่าซ้ำแสดงเป็นสถานะปกติ
+
+หาก Shopee automation รันอยู่นอก Compose ให้ตั้งโฟลเดอร์รายงานบนเครื่อง host:
+
+```dotenv
+SHOPEE_REPORT_HOST_PATH=/home/your-user/kleanandkare-shopee/sales-reports
+```
 
 > หากทดสอบผ่าน HTTP ในเครื่อง ให้ตั้ง `WEB_COOKIE_SECURE=false` ชั่วคราว
 > แต่ production ที่เป็น HTTPS ต้องใช้ `true`

@@ -165,7 +165,7 @@ dialog::backdrop {{ background: #10153875; backdrop-filter: blur(3px); }}
 .dialog-note {{ min-height:20px;margin:12px 0 0;color:var(--muted);font-size:13px; }}
 @media (max-width: 760px) {{ main {{ padding: 14px; }} .report-brand {{ align-items:flex-start;flex-direction:column;gap:12px; }} .report-brand img {{ width:180px; }} .cards {{ grid-template-columns: repeat(2,1fr); }} .toolbar-top {{ grid-template-columns:1fr; }} .export-button {{ width:100%; }} .filter-row {{ align-items:flex-start;flex-direction:column; }} th {{ top:258px; }} .attention {{ align-items:flex-start;flex-direction:column; }} .detail-grid {{ grid-template-columns:1fr 1fr; }} .dialog-proof-grid {{ grid-template-columns:repeat(2,1fr); }} }}
 </style>
-<script defer src="/static/report.js?v=20260717d"></script>
+<script defer src="/static/report.js?v=20260724a"></script>
 </head>
 <body><main>
 <header class="report-brand"><img src="/static/bedee-logo.png?v=20260717" alt="BeDee Powered by BDMS"><div><h1>สถานะจัดส่ง KLEAN&amp;KARE, KEX และ InterExpress</h1><div class="muted">ตรวจล่าสุด {html.escape(checked)} · ออเดอร์ไม่ซ้ำ {len(rows)} รายการ</div></div></header>
