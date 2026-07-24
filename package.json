@@ -1,0 +1,12 @@
+{
+  "name": "bedee-cs-delivery-checker-automation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Optional Shopee mapping automation for the private BeDee CS checker",
+  "scripts": {
+    "shopee:download": "node klean_pod_checker/download_shopee_report.js"
+  },
+  "dependencies": {
+    "playwright": "1.61.1"
+  }
+}

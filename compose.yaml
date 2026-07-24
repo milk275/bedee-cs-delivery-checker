@@ -1,0 +1,85 @@
+name: bedee-cs-delivery-checker
+
+x-app: &app
+  build:
+    context: .
+    target: web
+  env_file:
+    - .env
+  environment:
+    OUTPUT_DIR: /app/runtime/outputs
+    KEX_PROOF_DIR: /app/runtime/kex-proofs
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+services:
+  web:
+    <<: *app
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8091}:8091"
+    volumes:
+      - cs_outputs:/app/runtime/outputs
+      - cs_kex_proofs:/app/runtime/kex-proofs
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8091/health', timeout=5)"
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 20s
+
+  status-scheduler:
+    <<: *app
+    command: ["python", "-m", "klean_pod_checker.scheduler"]
+    environment:
+      OUTPUT_DIR: /app/runtime/outputs
+      KEX_PROOF_DIR: /app/runtime/kex-proofs
+      SCHEDULE_TIMEZONE: "${SCHEDULE_TIMEZONE:-Asia/Bangkok}"
+      SCHEDULE_START_HOUR: "${SCHEDULE_START_HOUR:-8}"
+      SCHEDULE_END_HOUR: "${SCHEDULE_END_HOUR:-22}"
+      SCHEDULE_MINUTE: "${SCHEDULE_MINUTE:-0}"
+      SCHEDULE_RUN_ON_START: "${SCHEDULE_RUN_ON_START:-false}"
+    volumes:
+      - cs_outputs:/app/runtime/outputs
+      - cs_kex_proofs:/app/runtime/kex-proofs
+
+  shopee-sync:
+    profiles: ["shopee"]
+    build:
+      context: .
+      target: automation
+    env_file:
+      - .env
+    environment:
+      TZ: "${SCHEDULE_TIMEZONE:-Asia/Bangkok}"
+      SHOPEE_PROFILE: /runtime/shopee/session
+      SHOPEE_REPORT_DIRECTORY: /runtime/shopee/reports
+      SHOPEE_WORK_DIRECTORY: /runtime/shopee/work
+      SHOPEE_REPORT_MANIFEST: /runtime/shopee/reports/latest-report-manifest.json
+    volumes:
+      - shopee_session:/runtime/shopee/session
+      - shopee_reports:/runtime/shopee/reports
+      - shopee_work:/runtime/shopee/work
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    shm_size: 1gb
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  cs_outputs:
+  cs_kex_proofs:
+  shopee_session:
+  shopee_reports:
+  shopee_work:

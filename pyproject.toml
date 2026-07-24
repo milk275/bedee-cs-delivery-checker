@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bedee-cs-delivery-checker"
+version = "1.0.0"
+description = "Private BeDee CS dashboard for KLEAN&KARE, KEX and InterExpress"
+requires-python = ">=3.10"
+dependencies = [
+  "Flask>=3.1,<4",
+  "gunicorn>=23,<24",
+  "requests>=2.32,<3",
+]
+
+[project.scripts]
+bedee-cs-checker = "klean_pod_checker.runner:main"
+bedee-cs-scheduler = "klean_pod_checker.scheduler:main"
+
+[tool.setuptools.packages.find]
+include = ["klean_pod_checker*"]
+
+[tool.setuptools.package-data]
+klean_pod_checker = ["templates/*.html", "static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
