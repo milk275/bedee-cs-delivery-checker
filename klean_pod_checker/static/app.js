@@ -8,8 +8,69 @@ const singleResultPanel = document.querySelector("#single-result");
 const groupResultPanel = document.querySelector("#group-result");
 let activeResult = null;
 
+const shopeeHealthCard = document.querySelector("#shopee-health-card");
+const shopeeHealthBadge = document.querySelector("#shopee-health-badge");
+const shopeeHealthSummary = document.querySelector("#shopee-health-summary");
+const shopeeHealthDetail = document.querySelector("#shopee-health-detail");
+const shopeeHealthChecked = document.querySelector("#shopee-health-checked");
+const shopeeHealthRefresh = document.querySelector("#shopee-health-refresh");
+const SHOPEE_HEALTH_LABELS = {
+  ok: "ปกติ",
+  warning: "ควรตรวจสอบ",
+  error: "มีปัญหา",
+};
+
 function setText(selector, value) {
   document.querySelector(selector).textContent = value || "—";
+}
+
+function formatHealthCheckedAt(value) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "ไม่พบเวลาตรวจสอบ";
+  return new Intl.DateTimeFormat("th-TH", {
+    dateStyle: "medium",
+    timeStyle: "medium",
+  }).format(parsed);
+}
+
+function renderShopeeHealth(item) {
+  const status = ["ok", "warning", "error"].includes(item.status)
+    ? item.status
+    : "error";
+  shopeeHealthCard.className = `shopee-health-card ${status}`;
+  shopeeHealthBadge.textContent = SHOPEE_HEALTH_LABELS[status];
+  shopeeHealthSummary.textContent = item.summary || "ไม่พบสถานะ";
+  shopeeHealthDetail.textContent = item.detail || "ยังไม่มีรายละเอียดการทำงาน";
+  shopeeHealthChecked.textContent = `ตรวจ ${formatHealthCheckedAt(item.checked_at)}`;
+}
+
+async function loadShopeeHealth() {
+  shopeeHealthRefresh.disabled = true;
+  shopeeHealthRefresh.textContent = "กำลังตรวจ…";
+  try {
+    const response = await fetch("/api/health/shopee", {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    if (response.status === 401) {
+      window.location.assign("/login");
+      return;
+    }
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "ตรวจระบบไม่สำเร็จ");
+    renderShopeeHealth(payload);
+  } catch {
+    renderShopeeHealth({
+      status: "error",
+      summary: "โหลดสถานะไม่ได้",
+      detail: "ไม่สามารถตรวจการทำงานของ Shopee Bot ได้ กรุณากดตรวจใหม่",
+      checked_at: new Date().toISOString(),
+    });
+  } finally {
+    shopeeHealthRefresh.disabled = false;
+    shopeeHealthRefresh.textContent = "ตรวจใหม่";
+  }
 }
 
 function showError(message) {
@@ -289,3 +350,7 @@ form.addEventListener("submit", async (event) => {
     button.textContent = "ตรวจสอบสถานะ";
   }
 });
+
+shopeeHealthRefresh.addEventListener("click", loadShopeeHealth);
+loadShopeeHealth();
+window.setInterval(loadShopeeHealth, 60_000);

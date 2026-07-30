@@ -37,6 +37,19 @@ class FakeAdminHealth:
             "checks": [],
         }
 
+    def shopee_snapshot(self):
+        return {
+            "key": "shopee_sync",
+            "group": "ข้อมูลและระบบอัตโนมัติ",
+            "name": "Shopee Bot → Supabase",
+            "status": "ok",
+            "summary": "ทำงานปกติ",
+            "detail": "ดาวน์โหลดและเขียน Mapping สำเร็จ",
+            "checked_at": "2026-07-24T12:00:00+07:00",
+            "latency_ms": 20,
+            "latest_at": "2026-07-24T11:05:00+07:00",
+        }
+
 
 def settings(tmp_path: Path) -> Settings:
     return Settings(
@@ -120,6 +133,7 @@ def test_health_is_public_but_api_is_protected(tmp_path):
     api = client.post("/api/check", json={"order": "test"})
     assert api.status_code == 401
     assert client.get("/api/admin/health").status_code == 401
+    assert client.get("/api/health/shopee").status_code == 401
 
 
 def test_admin_page_and_health_api_require_valid_session(tmp_path):
@@ -133,3 +147,18 @@ def test_admin_page_and_health_api_require_valid_session(tmp_path):
     payload = client.get("/api/admin/health")
     assert payload.status_code == 200
     assert payload.get_json()["overall"] == "ok"
+
+    shopee = client.get("/api/health/shopee")
+    assert shopee.status_code == 200
+    assert shopee.get_json()["key"] == "shopee_sync"
+
+
+def test_dashboard_contains_shopee_health_card(tmp_path):
+    client = app(tmp_path).test_client()
+    client.post("/login", data={"pin": "safe-test-pin"})
+
+    page = client.get("/")
+
+    assert page.status_code == 200
+    assert b'id="shopee-health-card"' in page.data
+    assert "Shopee Bot".encode() in page.data

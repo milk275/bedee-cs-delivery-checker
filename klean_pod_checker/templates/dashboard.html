@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <title>BeDee Fulfilment · Delivery Checker</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='app.css', v='20260724a') }}">
-  <script defer src="{{ url_for('static', filename='app.js', v='20260717a') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css', v='20260730a') }}">
+  <script defer src="{{ url_for('static', filename='app.js', v='20260730a') }}"></script>
 </head>
 <body>
   <header class="topbar">
@@ -91,6 +91,27 @@
         <div id="group-track-list" class="group-track-list"></div>
       </section>
       <p id="result-note" class="result-note"></p>
+    </section>
+
+    <section id="shopee-health-card" class="shopee-health-card loading" aria-labelledby="shopee-health-title" aria-live="polite">
+      <div class="shopee-health-top">
+        <div class="shopee-health-name">
+          <span class="shopee-health-dot" aria-hidden="true"></span>
+          <p id="shopee-health-title">Shopee Bot → Supabase</p>
+        </div>
+        <span id="shopee-health-badge" class="shopee-health-badge">กำลังตรวจ</span>
+      </div>
+      <div class="shopee-health-content">
+        <div>
+          <h2 id="shopee-health-summary">กำลังตรวจการทำงาน…</h2>
+          <p id="shopee-health-detail">ตรวจเวลาโหลดรายงาน Shopee และเวลาเขียน Mapping เข้า Supabase</p>
+        </div>
+        <button id="shopee-health-refresh" class="secondary-button" type="button">ตรวจใหม่</button>
+      </div>
+      <div class="shopee-health-meta">
+        <span id="shopee-health-checked">กำลังโหลดข้อมูล Real-time</span>
+        <a href="{{ url_for('admin') }}">ดูระบบทั้งหมด</a>
+      </div>
     </section>
 
     <section class="report-panel">

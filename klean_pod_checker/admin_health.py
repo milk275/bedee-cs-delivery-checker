@@ -61,6 +61,10 @@ class AdminHealthService:
             self._cached_payload = payload
             return payload
 
+    def shopee_snapshot(self) -> dict[str, Any]:
+        """Return the lightweight Shopee sync check used on the CS dashboard."""
+        return asdict(self._check_shopee_sync())
+
     def _run_checks(self) -> dict[str, Any]:
         checks: tuple[Callable[[], HealthCheck], ...] = (
             self._check_skyfrog,

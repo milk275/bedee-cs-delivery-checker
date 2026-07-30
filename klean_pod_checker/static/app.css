@@ -103,6 +103,29 @@ a { color: inherit; }
 .proof-card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #edf2f8; }
 .proof-card span { display: block; padding: 10px 12px; color: var(--green-800); font-size: 13px; font-weight: 700; }
 
+.shopee-health-card { margin-top: 24px; padding: 24px 26px; border: 1px solid var(--line); border-top: 5px solid #8590a4; border-radius: 22px; background: var(--white); box-shadow: 0 15px 40px rgba(21, 26, 152, .07); }
+.shopee-health-card.ok { border-top-color: #16834c; }
+.shopee-health-card.warning { border-top-color: #c57b09; }
+.shopee-health-card.error { border-top-color: #c13e34; }
+.shopee-health-top, .shopee-health-content, .shopee-health-meta { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.shopee-health-name { display: flex; align-items: center; gap: 12px; }
+.shopee-health-name p { margin: 0; color: var(--muted); font-size: 15px; font-weight: 800; }
+.shopee-health-dot { width: 13px; height: 13px; border-radius: 50%; background: #8590a4; box-shadow: 0 0 0 6px #edf0f5; }
+.shopee-health-card.ok .shopee-health-dot { background: #16834c; box-shadow: 0 0 0 6px #dff1e6; }
+.shopee-health-card.warning .shopee-health-dot { background: #c57b09; box-shadow: 0 0 0 6px #fae9c4; }
+.shopee-health-card.error .shopee-health-dot { background: #c13e34; box-shadow: 0 0 0 6px #f7dcd8; }
+.shopee-health-badge { padding: 7px 12px; border-radius: 99px; background: #edf0f5; color: #586277; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.shopee-health-card.ok .shopee-health-badge { background: #e5f4eb; color: #116d3e; }
+.shopee-health-card.warning .shopee-health-badge { background: #fff0d1; color: #945a03; }
+.shopee-health-card.error .shopee-health-badge { background: #fde6e3; color: #9c2e27; }
+.shopee-health-content { margin-top: 18px; }
+.shopee-health-content h2 { margin: 0 0 7px; font-size: 24px; }
+.shopee-health-content p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.shopee-health-content .secondary-button { flex: 0 0 auto; min-height: 44px; padding: 0 18px; }
+.shopee-health-meta { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.shopee-health-meta a { color: var(--green-800); font-weight: 750; text-decoration: none; }
+.shopee-health-meta a:hover { color: var(--green-650); }
+
 .report-panel { margin-top: 24px; padding: 28px; }
 .report-title h2 { margin: 0; font-size: 22px; }
 .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 22px 0; }
@@ -174,7 +197,7 @@ footer { padding: 0 20px 30px; text-align: center; color: var(--muted); font-siz
   .hero { display: block; }
   .hero h1 { font-size: 36px; }
   .live-chip { width: fit-content; margin-top: 20px; }
-  .search-panel, .result-panel, .report-panel { border-radius: 18px; padding: 20px; }
+  .search-panel, .result-panel, .report-panel, .shopee-health-card { border-radius: 18px; padding: 20px; }
   .search-form { grid-template-columns: 1fr; }
   .search-form .primary-button { width: 100%; }
   .result-heading { align-items: flex-start; flex-direction: column; }
@@ -183,6 +206,8 @@ footer { padding: 0 20px 30px; text-align: center; color: var(--muted); font-siz
   .proof-grid, .summary-grid { grid-template-columns: 1fr 1fr; }
   .group-proof-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .report-title { align-items: flex-start; flex-direction: column; }
+  .shopee-health-content { align-items: flex-start; flex-direction: column; }
+  .shopee-health-content .secondary-button { width: 100%; }
   .admin-heading, .health-section-heading { align-items: flex-start; flex-direction: column; }
   .health-grid, .automation-grid { grid-template-columns: 1fr; }
 }
@@ -199,6 +224,7 @@ footer { padding: 0 20px 30px; text-align: center; color: var(--muted); font-siz
   .result-actions { flex-direction: column; }
   .topbar-actions { gap: 12px; }
   .topbar-link, .text-button { font-size: 12px; }
+  .shopee-health-meta { align-items: flex-start; flex-direction: column; gap: 8px; }
   .admin-heading .secondary-button { width: 100%; }
   .health-card-meta { align-items: flex-start; flex-direction: column; gap: 5px; }
 }

@@ -476,6 +476,11 @@ def create_app(
     def admin_health_snapshot():
         return jsonify(admin_health.snapshot())
 
+    @app.get("/api/health/shopee")
+    @_login_required(api=True)
+    def shopee_health_snapshot():
+        return jsonify(admin_health.shopee_snapshot())
+
     @app.post("/api/check")
     @_login_required(api=True)
     def check_order():
