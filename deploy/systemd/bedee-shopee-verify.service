@@ -1,0 +1,11 @@
+[Unit]
+Description=Verify the recovered Klean&Kare Shopee session
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl start bedee-shopee-login-stop.service
+ExecStart=/usr/bin/systemctl reset-failed kleanandkare-shopee-report.service
+ExecStart=/usr/bin/systemctl start --no-block kleanandkare-shopee-report.service
+

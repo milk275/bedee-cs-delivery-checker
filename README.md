@@ -67,6 +67,8 @@ SHOPEE_REPORT_HOST_PATH=/home/your-user/kleanandkare-shopee/sales-reports
 noVNC และกรอก OTP ได้เอง โดยไม่ต้องเปิด VNC สู่ Internet สาธารณะ
 เมื่อเข้าสู่ระบบใหม่แล้วบอทตรวจสอบสำเร็จ ระบบจะบันทึกเวลาเข้าสู่ระบบล่าสุดและ
 แสดงวันที่คาดว่าจะต้องยืนยัน OTP รอบถัดไปอีก 7 วันบนการ์ด Shopee
+เจ้าหน้าที่กด **เข้าสู่ระบบแล้ว ตรวจสอบทันที** เพื่อให้ Pi ปิด VNC และรันบอท
+ยืนยัน session ใหม่ได้ทันที โดยไม่ต้องรอรอบรายชั่วโมง
 
 บน Raspberry Pi ให้ตั้งค่า path ที่ container ใช้ส่งคำขอ และ URL noVNC ที่ผูกกับ
 Tailscale IP ของ Pi:
@@ -86,6 +88,8 @@ sudo install -m 0644 deploy/systemd/bedee-shopee-login.path /etc/systemd/system/
 sudo install -m 0644 deploy/systemd/bedee-shopee-login.service /etc/systemd/system/
 sudo install -m 0644 deploy/systemd/bedee-shopee-login-stop.service /etc/systemd/system/
 sudo install -m 0644 deploy/systemd/bedee-shopee-login-stop.timer /etc/systemd/system/
+sudo install -m 0644 deploy/systemd/bedee-shopee-verify.path /etc/systemd/system/
+sudo install -m 0644 deploy/systemd/bedee-shopee-verify.service /etc/systemd/system/
 sudo install -d -m 0755 /etc/systemd/system/kleanandkare-shopee-report.service.d
 sudo install -m 0644 \
   deploy/systemd/kleanandkare-shopee-report.service.d/bedee-login.conf \
@@ -96,6 +100,7 @@ sudo install -m 0644 \
   /etc/systemd/system/kleanandkare-shopee-vnc.service.d/
 sudo systemctl daemon-reload
 sudo systemctl enable --now bedee-shopee-login.path
+sudo systemctl enable --now bedee-shopee-verify.path
 ```
 
 เครื่องของเจ้าหน้าที่ต้องเชื่อมต่อ Tailscale network เดียวกับ Pi ก่อนเปิดปุ่ม

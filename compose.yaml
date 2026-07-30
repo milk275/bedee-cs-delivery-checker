@@ -26,6 +26,7 @@ services:
       SHOPEE_REPORT_DIRECTORY: /app/runtime/shopee-reports
       SHOPEE_REPORT_MANIFEST: /app/runtime/shopee-reports/latest-report-manifest.json
       SHOPEE_LOGIN_TRIGGER: /app/runtime/control/shopee-login.request
+      SHOPEE_VERIFY_TRIGGER: /app/runtime/control/shopee-verify.request
     ports:
       - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8091}:8091"
     volumes:

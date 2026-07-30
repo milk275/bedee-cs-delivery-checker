@@ -136,6 +136,7 @@ def test_health_is_public_but_api_is_protected(tmp_path):
     assert client.get("/api/admin/health").status_code == 401
     assert client.get("/api/health/shopee").status_code == 401
     assert client.post("/api/shopee/login-session", json={}).status_code == 401
+    assert client.post("/api/shopee/verify-session", json={}).status_code == 401
 
 
 def test_admin_page_and_health_api_require_valid_session(tmp_path):
@@ -164,6 +165,7 @@ def test_dashboard_contains_shopee_health_card(tmp_path):
     assert page.status_code == 200
     assert b'id="shopee-health-card"' in page.data
     assert b'id="shopee-login-timeline"' in page.data
+    assert b'id="shopee-login-verify"' in page.data
     assert "Shopee Bot".encode() in page.data
 
 
@@ -202,3 +204,20 @@ def test_shopee_login_window_requires_json_request(tmp_path):
 
     assert response.status_code == 415
     assert not trigger.exists()
+
+
+def test_authenticated_cs_can_verify_recovered_shopee_session(tmp_path):
+    trigger = tmp_path / "control" / "shopee-verify.request"
+    trigger.parent.mkdir()
+    configured = replace(
+        settings(tmp_path),
+        shopee_verify_trigger=trigger,
+    )
+    client = app(tmp_path, configured).test_client()
+    client.post("/login", data={"pin": "safe-test-pin"})
+
+    response = client.post("/api/shopee/verify-session", json={})
+
+    assert response.status_code == 202
+    assert response.get_json()["ok"] is True
+    assert trigger.is_file()

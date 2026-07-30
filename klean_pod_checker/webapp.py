@@ -407,6 +407,7 @@ def create_app(
     login_limiter = SlidingWindowLimiter(limit=8, seconds=10 * 60)
     search_limiter = SlidingWindowLimiter(limit=30, seconds=60)
     shopee_login_limiter = SlidingWindowLimiter(limit=3, seconds=10 * 60)
+    shopee_verify_limiter = SlidingWindowLimiter(limit=3, seconds=10 * 60)
 
     @app.after_request
     def security_headers(response: Response) -> Response:
@@ -506,6 +507,29 @@ def create_app(
             ok=True,
             url=settings.shopee_vnc_url,
             expires_minutes=settings.shopee_vnc_window_minutes,
+        ), 202
+
+    @app.post("/api/shopee/verify-session")
+    @_login_required(api=True)
+    def verify_shopee_login_session():
+        if not request.is_json:
+            return jsonify(error="คำขอไม่ถูกต้อง"), 415
+        if not shopee_verify_limiter.allow(_client_ip()):
+            return jsonify(error="ตรวจ Shopee ถี่เกินไป กรุณารอสักครู่"), 429
+        trigger = settings.shopee_verify_trigger
+        try:
+            if not trigger.parent.is_dir():
+                raise OSError("Shopee control directory is unavailable")
+            trigger.write_text(
+                datetime.now().astimezone().isoformat(timespec="seconds"),
+                encoding="utf-8",
+            )
+        except OSError:
+            app.logger.exception("Could not verify the Shopee login session")
+            return jsonify(error="สั่งตรวจ Shopee บน Pi ไม่สำเร็จ"), 503
+        return jsonify(
+            ok=True,
+            message="กำลังตรวจสอบ Shopee session ใหม่",
         ), 202
 
     @app.post("/api/check")

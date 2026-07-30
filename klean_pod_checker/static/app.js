@@ -16,7 +16,9 @@ const shopeeLoginTimeline = document.querySelector("#shopee-login-timeline");
 const shopeeHealthChecked = document.querySelector("#shopee-health-checked");
 const shopeeHealthRefresh = document.querySelector("#shopee-health-refresh");
 const shopeeLoginOpen = document.querySelector("#shopee-login-open");
+const shopeeLoginVerify = document.querySelector("#shopee-login-verify");
 const shopeeLoginNote = document.querySelector("#shopee-login-note");
+let shopeeVerificationTimer = null;
 const SHOPEE_HEALTH_LABELS = {
   ok: "ปกติ",
   warning: "ควรตรวจสอบ",
@@ -52,6 +54,7 @@ function renderShopeeHealth(item) {
     "hidden",
     status !== "error" && !item.requires_login,
   );
+  shopeeLoginVerify.classList.toggle("hidden", !item.requires_login);
 }
 
 async function loadShopeeHealth() {
@@ -70,6 +73,7 @@ async function loadShopeeHealth() {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || "ตรวจระบบไม่สำเร็จ");
     renderShopeeHealth(payload);
+    return payload;
   } catch {
     renderShopeeHealth({
       status: "error",
@@ -77,6 +81,7 @@ async function loadShopeeHealth() {
       detail: "ไม่สามารถตรวจการทำงานของ Shopee Bot ได้ กรุณากดตรวจใหม่",
       checked_at: new Date().toISOString(),
     });
+    return null;
   } finally {
     shopeeHealthRefresh.disabled = false;
     shopeeHealthRefresh.textContent = "ตรวจใหม่";
@@ -115,6 +120,7 @@ async function openShopeeLogin() {
     shopeeLoginNote.textContent =
       `เปิด VNC แล้ว ระบบจะปิดอัตโนมัติภายใน ${payload.expires_minutes} นาที`;
     shopeeLoginNote.classList.remove("hidden");
+    shopeeLoginVerify.classList.remove("hidden");
     window.setTimeout(() => {
       loginWindow.opener = null;
       loginWindow.location.replace(payload.url);
@@ -126,6 +132,53 @@ async function openShopeeLogin() {
   } finally {
     shopeeLoginOpen.disabled = false;
     shopeeLoginOpen.textContent = "เปิดหน้าเข้าสู่ระบบ Shopee";
+  }
+}
+
+async function verifyShopeeSession() {
+  shopeeLoginVerify.disabled = true;
+  shopeeLoginVerify.textContent = "กำลังสั่งตรวจ…";
+  shopeeLoginNote.textContent = "กำลังตรวจ Shopee session ใหม่ อาจใช้เวลาประมาณ 2–4 นาที";
+  shopeeLoginNote.classList.remove("hidden");
+  try {
+    const response = await fetch("/api/shopee/verify-session", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+    });
+    if (response.status === 401) {
+      window.location.assign("/login");
+      return;
+    }
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "สั่งตรวจ Shopee ไม่สำเร็จ");
+    if (shopeeVerificationTimer) window.clearInterval(shopeeVerificationTimer);
+    let checks = 0;
+    shopeeVerificationTimer = window.setInterval(async () => {
+      checks += 1;
+      const health = await loadShopeeHealth();
+      if (health && !health.requires_login && health.status === "ok") {
+        window.clearInterval(shopeeVerificationTimer);
+        shopeeVerificationTimer = null;
+        shopeeLoginNote.textContent = "เข้าสู่ระบบสำเร็จ บอท Shopee กลับมาทำงานปกติแล้ว";
+        shopeeLoginVerify.disabled = false;
+        shopeeLoginVerify.textContent = "เข้าสู่ระบบแล้ว ตรวจสอบทันที";
+      } else if (checks >= 36) {
+        window.clearInterval(shopeeVerificationTimer);
+        shopeeVerificationTimer = null;
+        shopeeLoginNote.textContent = "ยังตรวจไม่สำเร็จ กรุณาตรวจหน้าเข้าสู่ระบบหรือทดลองอีกครั้ง";
+        shopeeLoginVerify.disabled = false;
+        shopeeLoginVerify.textContent = "เข้าสู่ระบบแล้ว ตรวจสอบทันที";
+      }
+    }, 10_000);
+  } catch (error) {
+    shopeeLoginNote.textContent = error.message || "สั่งตรวจ Shopee ไม่สำเร็จ";
+    shopeeLoginVerify.disabled = false;
+    shopeeLoginVerify.textContent = "เข้าสู่ระบบแล้ว ตรวจสอบทันที";
   }
 }
 
@@ -409,5 +462,6 @@ form.addEventListener("submit", async (event) => {
 
 shopeeHealthRefresh.addEventListener("click", loadShopeeHealth);
 shopeeLoginOpen.addEventListener("click", openShopeeLogin);
+shopeeLoginVerify.addEventListener("click", verifyShopeeSession);
 loadShopeeHealth();
 window.setInterval(loadShopeeHealth, 60_000);

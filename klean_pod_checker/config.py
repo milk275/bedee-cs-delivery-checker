@@ -71,6 +71,9 @@ class Settings:
     shopee_login_trigger: Path = (
         PROJECT_ROOT / "runtime" / "control" / "shopee-login.request"
     )
+    shopee_verify_trigger: Path = (
+        PROJECT_ROOT / "runtime" / "control" / "shopee-verify.request"
+    )
     shopee_vnc_url: str = ""
     shopee_vnc_window_minutes: int = 20
 
@@ -151,6 +154,12 @@ class Settings:
                 os.environ.get(
                     "SHOPEE_LOGIN_TRIGGER",
                     "./runtime/control/shopee-login.request",
+                )
+            ),
+            shopee_verify_trigger=_path(
+                os.environ.get(
+                    "SHOPEE_VERIFY_TRIGGER",
+                    "./runtime/control/shopee-verify.request",
                 )
             ),
             shopee_vnc_url=os.environ.get("SHOPEE_VNC_URL", "").strip(),
