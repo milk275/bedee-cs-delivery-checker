@@ -36,6 +36,8 @@ class HealthCheck:
     latency_ms: int | None = None
     latest_at: str = ""
     requires_login: bool = False
+    last_login_at: str = ""
+    next_login_at: str = ""
 
 
 class AdminHealthService:
@@ -409,6 +411,13 @@ class AdminHealthService:
             automation_state.get("status") == "error"
             and automation_state.get("code") == "session_expired"
         )
+        last_login_at = automation_state.get("last_login_at", "")
+        last_login = _parse_datetime(last_login_at)
+        next_login_at = (
+            (last_login + timedelta(days=7)).isoformat(timespec="seconds")
+            if last_login is not None
+            else ""
+        )
         if latest_download is None:
             return self._result(
                 "shopee_sync",
@@ -428,6 +437,8 @@ class AdminHealthService:
                 started=started,
                 latest_at=imported_at,
                 requires_login=requires_login,
+                last_login_at=last_login_at,
+                next_login_at=next_login_at,
             )
 
         now = datetime.now(THAILAND_TZ)
@@ -450,6 +461,8 @@ class AdminHealthService:
                 started=started,
                 latest_at=latest_download.isoformat(),
                 requires_login=True,
+                last_login_at=last_login_at,
+                next_login_at=next_login_at,
             )
         return self._result(
             "shopee_sync",
@@ -460,6 +473,8 @@ class AdminHealthService:
             detail,
             started=started,
             latest_at=latest_download.isoformat(),
+            last_login_at=last_login_at,
+            next_login_at=next_login_at,
         )
 
     def _shopee_automation_state(self) -> dict[str, str]:
@@ -474,6 +489,8 @@ class AdminHealthService:
             "status": str(payload.get("status") or ""),
             "code": str(payload.get("code") or ""),
             "checked_at": str(payload.get("checked_at") or ""),
+            "last_login_at": str(payload.get("last_login_at") or ""),
+            "session_expired_at": str(payload.get("session_expired_at") or ""),
         }
 
     def _latest_shopee_download(self) -> datetime | None:
@@ -541,6 +558,8 @@ class AdminHealthService:
         started: float | None = None,
         latest_at: str = "",
         requires_login: bool = False,
+        last_login_at: str = "",
+        next_login_at: str = "",
     ) -> HealthCheck:
         latency_ms = (
             max(0, round((time.monotonic() - started) * 1_000))
@@ -558,6 +577,8 @@ class AdminHealthService:
             latency_ms=latency_ms,
             latest_at=latest_at,
             requires_login=requires_login,
+            last_login_at=last_login_at,
+            next_login_at=next_login_at,
         )
 
 

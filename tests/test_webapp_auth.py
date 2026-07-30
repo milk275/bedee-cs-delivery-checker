@@ -163,6 +163,7 @@ def test_dashboard_contains_shopee_health_card(tmp_path):
 
     assert page.status_code == 200
     assert b'id="shopee-health-card"' in page.data
+    assert b'id="shopee-login-timeline"' in page.data
     assert "Shopee Bot".encode() in page.data
 
 

@@ -12,6 +12,7 @@ const shopeeHealthCard = document.querySelector("#shopee-health-card");
 const shopeeHealthBadge = document.querySelector("#shopee-health-badge");
 const shopeeHealthSummary = document.querySelector("#shopee-health-summary");
 const shopeeHealthDetail = document.querySelector("#shopee-health-detail");
+const shopeeLoginTimeline = document.querySelector("#shopee-login-timeline");
 const shopeeHealthChecked = document.querySelector("#shopee-health-checked");
 const shopeeHealthRefresh = document.querySelector("#shopee-health-refresh");
 const shopeeLoginOpen = document.querySelector("#shopee-login-open");
@@ -43,6 +44,9 @@ function renderShopeeHealth(item) {
   shopeeHealthBadge.textContent = SHOPEE_HEALTH_LABELS[status];
   shopeeHealthSummary.textContent = item.summary || "ไม่พบสถานะ";
   shopeeHealthDetail.textContent = item.detail || "ยังไม่มีรายละเอียดการทำงาน";
+  shopeeLoginTimeline.textContent = item.last_login_at
+    ? `เข้าสู่ระบบล่าสุด ${formatHealthCheckedAt(item.last_login_at)} · คาดว่าจะยืนยัน OTP อีกครั้ง ${formatHealthCheckedAt(item.next_login_at)}`
+    : "ยังไม่มีประวัติเข้าสู่ระบบล่าสุด ระบบจะบันทึกหลังล็อกอินใหม่และบอทตรวจสอบสำเร็จ";
   shopeeHealthChecked.textContent = `ตรวจ ${formatHealthCheckedAt(item.checked_at)}`;
   shopeeLoginOpen.classList.toggle(
     "hidden",

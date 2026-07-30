@@ -76,12 +76,14 @@ def test_datetime_formatter_always_uses_thailand_time():
 def test_shopee_session_expiry_requests_login(tmp_path, monkeypatch):
     configured = settings(tmp_path)
     configured.shopee_report_directory.mkdir(parents=True)
+    last_login = datetime(2026, 7, 23, 10, 15, tzinfo=THAILAND_TZ)
     (configured.shopee_report_directory / "automation-status.json").write_text(
         json.dumps(
             {
                 "status": "error",
                 "code": "session_expired",
                 "checked_at": datetime.now(THAILAND_TZ).isoformat(),
+                "last_login_at": last_login.isoformat(),
             }
         ),
         encoding="utf-8",
@@ -103,3 +105,5 @@ def test_shopee_session_expiry_requests_login(tmp_path, monkeypatch):
     assert result.status == "error"
     assert result.requires_login is True
     assert result.summary == "ต้องเข้าสู่ระบบ Shopee ใหม่"
+    assert result.last_login_at == last_login.isoformat()
+    assert _format_datetime(result.next_login_at) == "30/07/2026 10:15 น."
