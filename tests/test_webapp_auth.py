@@ -1,3 +1,4 @@
+from dataclasses import replace
 from pathlib import Path
 
 from werkzeug.security import generate_password_hash
@@ -75,9 +76,9 @@ def settings(tmp_path: Path) -> Settings:
     )
 
 
-def app(tmp_path):
+def app(tmp_path, configured_settings=None):
     result = create_app(
-        settings=settings(tmp_path),
+        settings=configured_settings or settings(tmp_path),
         search_service=FakeSearch(),
         sheet_writer=DisabledWriter(),
         mapping_store=FakeMappings(),
@@ -134,6 +135,7 @@ def test_health_is_public_but_api_is_protected(tmp_path):
     assert api.status_code == 401
     assert client.get("/api/admin/health").status_code == 401
     assert client.get("/api/health/shopee").status_code == 401
+    assert client.post("/api/shopee/login-session", json={}).status_code == 401
 
 
 def test_admin_page_and_health_api_require_valid_session(tmp_path):
@@ -162,3 +164,40 @@ def test_dashboard_contains_shopee_health_card(tmp_path):
     assert page.status_code == 200
     assert b'id="shopee-health-card"' in page.data
     assert "Shopee Bot".encode() in page.data
+
+
+def test_authenticated_cs_can_request_tailscale_vnc_login_window(tmp_path):
+    trigger = tmp_path / "control" / "shopee-login.request"
+    trigger.parent.mkdir()
+    configured = replace(
+        settings(tmp_path),
+        shopee_login_trigger=trigger,
+        shopee_vnc_url="http://100.64.0.1:6081/vnc.html",
+        shopee_vnc_window_minutes=20,
+    )
+    client = app(tmp_path, configured).test_client()
+    client.post("/login", data={"pin": "safe-test-pin"})
+
+    response = client.post("/api/shopee/login-session", json={})
+
+    assert response.status_code == 202
+    assert response.get_json()["url"] == configured.shopee_vnc_url
+    assert response.get_json()["expires_minutes"] == 20
+    assert trigger.is_file()
+
+
+def test_shopee_login_window_requires_json_request(tmp_path):
+    trigger = tmp_path / "control" / "shopee-login.request"
+    trigger.parent.mkdir()
+    configured = replace(
+        settings(tmp_path),
+        shopee_login_trigger=trigger,
+        shopee_vnc_url="http://100.64.0.1:6081/vnc.html",
+    )
+    client = app(tmp_path, configured).test_client()
+    client.post("/login", data={"pin": "safe-test-pin"})
+
+    response = client.post("/api/shopee/login-session")
+
+    assert response.status_code == 415
+    assert not trigger.exists()

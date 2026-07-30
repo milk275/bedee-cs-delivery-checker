@@ -25,12 +25,14 @@ services:
       KEX_PROOF_DIR: /app/runtime/kex-proofs
       SHOPEE_REPORT_DIRECTORY: /app/runtime/shopee-reports
       SHOPEE_REPORT_MANIFEST: /app/runtime/shopee-reports/latest-report-manifest.json
+      SHOPEE_LOGIN_TRIGGER: /app/runtime/control/shopee-login.request
     ports:
       - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8091}:8091"
     volumes:
       - cs_outputs:/app/runtime/outputs
       - cs_kex_proofs:/app/runtime/kex-proofs
       - "${SHOPEE_REPORT_HOST_PATH:-./runtime/shopee-reports}:/app/runtime/shopee-reports:ro"
+      - "${SHOPEE_CONTROL_HOST_PATH:-./runtime/control}:/app/runtime/control"
     healthcheck:
       test:
         - CMD

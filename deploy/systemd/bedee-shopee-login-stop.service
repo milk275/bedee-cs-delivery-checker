@@ -1,0 +1,8 @@
+[Unit]
+Description=Close the dedicated Klean&Kare Shopee login window
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl stop kleanandkare-shopee-novnc.service
+ExecStart=/usr/bin/systemctl stop kleanandkare-shopee-vnc.service
+ExecStart=/usr/bin/systemctl stop kleanandkare-shopee-browser.service

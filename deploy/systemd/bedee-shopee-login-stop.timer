@@ -1,0 +1,7 @@
+[Unit]
+Description=Close the Klean&Kare Shopee login window after 20 minutes
+
+[Timer]
+OnActiveSec=20min
+AccuracySec=5s
+Unit=bedee-shopee-login-stop.service

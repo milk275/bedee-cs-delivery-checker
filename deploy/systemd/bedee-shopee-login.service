@@ -1,0 +1,9 @@
+[Unit]
+Description=Open the dedicated Klean&Kare Shopee login window
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl start kleanandkare-shopee-novnc.service
+ExecStartPost=/usr/bin/systemctl restart bedee-shopee-login-stop.timer

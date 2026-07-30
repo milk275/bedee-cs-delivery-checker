@@ -68,6 +68,11 @@ class Settings:
         PROJECT_ROOT / "runtime" / "shopee-reports" / "latest-report-manifest.json"
     )
     admin_health_cache_seconds: int = 60
+    shopee_login_trigger: Path = (
+        PROJECT_ROOT / "runtime" / "control" / "shopee-login.request"
+    )
+    shopee_vnc_url: str = ""
+    shopee_vnc_window_minutes: int = 20
 
     @property
     def sheet_csv_url(self) -> str:
@@ -141,6 +146,16 @@ class Settings:
             ),
             admin_health_cache_seconds=max(
                 15, int(os.environ.get("ADMIN_HEALTH_CACHE_SECONDS", "60"))
+            ),
+            shopee_login_trigger=_path(
+                os.environ.get(
+                    "SHOPEE_LOGIN_TRIGGER",
+                    "./runtime/control/shopee-login.request",
+                )
+            ),
+            shopee_vnc_url=os.environ.get("SHOPEE_VNC_URL", "").strip(),
+            shopee_vnc_window_minutes=max(
+                5, int(os.environ.get("SHOPEE_VNC_WINDOW_MINUTES", "20"))
             ),
         )
         if require_credentials:

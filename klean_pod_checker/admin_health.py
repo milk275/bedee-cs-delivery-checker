@@ -35,6 +35,7 @@ class HealthCheck:
     checked_at: str
     latency_ms: int | None = None
     latest_at: str = ""
+    requires_login: bool = False
 
 
 class AdminHealthService:
@@ -394,6 +395,7 @@ class AdminHealthService:
     def _check_shopee_sync(self) -> HealthCheck:
         started = time.monotonic()
         latest_download = self._latest_shopee_download()
+        automation_state = self._shopee_automation_state()
         try:
             mapping = self._supabase_latest(
                 self.settings.supabase_mapping_table,
@@ -403,16 +405,29 @@ class AdminHealthService:
         except (requests.RequestException, ValueError):
             imported_at = ""
 
+        requires_login = (
+            automation_state.get("status") == "error"
+            and automation_state.get("code") == "session_expired"
+        )
         if latest_download is None:
             return self._result(
                 "shopee_sync",
                 "ข้อมูลและระบบอัตโนมัติ",
                 "Shopee Bot → Supabase",
                 "error",
-                "ไม่พบรายงานจาก Shopee",
-                "บอทยังไม่มีไฟล์ดาวน์โหลดล่าสุดให้ตรวจสอบ",
+                (
+                    "ต้องเข้าสู่ระบบ Shopee ใหม่"
+                    if requires_login
+                    else "ไม่พบรายงานจาก Shopee"
+                ),
+                (
+                    "Shopee session หมดอายุ"
+                    if requires_login
+                    else "บอทยังไม่มีไฟล์ดาวน์โหลดล่าสุดให้ตรวจสอบ"
+                ),
                 started=started,
                 latest_at=imported_at,
+                requires_login=requires_login,
             )
 
         now = datetime.now(THAILAND_TZ)
@@ -424,6 +439,18 @@ class AdminHealthService:
             f"ดาวน์โหลด Shopee ล่าสุด {_format_datetime(latest_download.isoformat())} · "
             f"เขียน Mapping เข้า Supabase ล่าสุด {import_text}"
         )
+        if requires_login:
+            return self._result(
+                "shopee_sync",
+                "ข้อมูลและระบบอัตโนมัติ",
+                "Shopee Bot → Supabase",
+                "error",
+                "ต้องเข้าสู่ระบบ Shopee ใหม่",
+                f"Shopee session หมดอายุ · {detail}",
+                started=started,
+                latest_at=latest_download.isoformat(),
+                requires_login=True,
+            )
         return self._result(
             "shopee_sync",
             "ข้อมูลและระบบอัตโนมัติ",
@@ -434,6 +461,20 @@ class AdminHealthService:
             started=started,
             latest_at=latest_download.isoformat(),
         )
+
+    def _shopee_automation_state(self) -> dict[str, str]:
+        path = self.settings.shopee_report_directory / "automation-status.json"
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {}
+        if not isinstance(payload, dict):
+            return {}
+        return {
+            "status": str(payload.get("status") or ""),
+            "code": str(payload.get("code") or ""),
+            "checked_at": str(payload.get("checked_at") or ""),
+        }
 
     def _latest_shopee_download(self) -> datetime | None:
         manifest = self.settings.shopee_report_manifest
@@ -499,6 +540,7 @@ class AdminHealthService:
         *,
         started: float | None = None,
         latest_at: str = "",
+        requires_login: bool = False,
     ) -> HealthCheck:
         latency_ms = (
             max(0, round((time.monotonic() - started) * 1_000))
@@ -515,6 +557,7 @@ class AdminHealthService:
             checked_at=_now_iso(),
             latency_ms=latency_ms,
             latest_at=latest_at,
+            requires_login=requires_login,
         )
 
 

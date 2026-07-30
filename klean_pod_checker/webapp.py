@@ -406,6 +406,7 @@ def create_app(
     admin_health = admin_health_service or AdminHealthService(settings)
     login_limiter = SlidingWindowLimiter(limit=8, seconds=10 * 60)
     search_limiter = SlidingWindowLimiter(limit=30, seconds=60)
+    shopee_login_limiter = SlidingWindowLimiter(limit=3, seconds=10 * 60)
 
     @app.after_request
     def security_headers(response: Response) -> Response:
@@ -480,6 +481,32 @@ def create_app(
     @_login_required(api=True)
     def shopee_health_snapshot():
         return jsonify(admin_health.shopee_snapshot())
+
+    @app.post("/api/shopee/login-session")
+    @_login_required(api=True)
+    def start_shopee_login_session():
+        if not request.is_json:
+            return jsonify(error="คำขอไม่ถูกต้อง"), 415
+        if not shopee_login_limiter.allow(_client_ip()):
+            return jsonify(error="เปิดหน้าล็อกอินถี่เกินไป กรุณารอสักครู่"), 429
+        if not settings.shopee_vnc_url:
+            return jsonify(error="ยังไม่ได้ตั้งค่าลิงก์ VNC ของ Shopee"), 503
+        trigger = settings.shopee_login_trigger
+        try:
+            if not trigger.parent.is_dir():
+                raise OSError("Shopee control directory is unavailable")
+            trigger.write_text(
+                datetime.now().astimezone().isoformat(timespec="seconds"),
+                encoding="utf-8",
+            )
+        except OSError:
+            app.logger.exception("Could not request the Shopee login window")
+            return jsonify(error="เปิดหน้าล็อกอินบน Pi ไม่สำเร็จ"), 503
+        return jsonify(
+            ok=True,
+            url=settings.shopee_vnc_url,
+            expires_minutes=settings.shopee_vnc_window_minutes,
+        ), 202
 
     @app.post("/api/check")
     @_login_required(api=True)

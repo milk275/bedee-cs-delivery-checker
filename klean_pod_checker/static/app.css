@@ -121,7 +121,9 @@ a { color: inherit; }
 .shopee-health-content { margin-top: 18px; }
 .shopee-health-content h2 { margin: 0 0 7px; font-size: 24px; }
 .shopee-health-content p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
-.shopee-health-content .secondary-button { flex: 0 0 auto; min-height: 44px; padding: 0 18px; }
+.shopee-health-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 9px; }
+.shopee-health-actions .primary-button, .shopee-health-actions .secondary-button { min-height: 44px; padding: 0 18px; font-size: 13px; white-space: nowrap; }
+.shopee-login-note { margin: 16px 0 0; padding: 11px 13px; border-radius: 10px; background: #edf6ff; color: var(--green-800); font-size: 13px; font-weight: 700; }
 .shopee-health-meta { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 .shopee-health-meta a { color: var(--green-800); font-weight: 750; text-decoration: none; }
 .shopee-health-meta a:hover { color: var(--green-650); }
@@ -207,7 +209,8 @@ footer { padding: 0 20px 30px; text-align: center; color: var(--muted); font-siz
   .group-proof-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .report-title { align-items: flex-start; flex-direction: column; }
   .shopee-health-content { align-items: flex-start; flex-direction: column; }
-  .shopee-health-content .secondary-button { width: 100%; }
+  .shopee-health-actions { width: 100%; }
+  .shopee-health-actions .primary-button, .shopee-health-actions .secondary-button { flex: 1 1 auto; }
   .admin-heading, .health-section-heading { align-items: flex-start; flex-direction: column; }
   .health-grid, .automation-grid { grid-template-columns: 1fr; }
 }
@@ -224,6 +227,8 @@ footer { padding: 0 20px 30px; text-align: center; color: var(--muted); font-siz
   .result-actions { flex-direction: column; }
   .topbar-actions { gap: 12px; }
   .topbar-link, .text-button { font-size: 12px; }
+  .shopee-health-actions { align-items: stretch; flex-direction: column; }
+  .shopee-health-actions .primary-button, .shopee-health-actions .secondary-button { width: 100%; }
   .shopee-health-meta { align-items: flex-start; flex-direction: column; gap: 8px; }
   .admin-heading .secondary-button { width: 100%; }
   .health-card-meta { align-items: flex-start; flex-direction: column; gap: 5px; }

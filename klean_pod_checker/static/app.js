@@ -14,6 +14,8 @@ const shopeeHealthSummary = document.querySelector("#shopee-health-summary");
 const shopeeHealthDetail = document.querySelector("#shopee-health-detail");
 const shopeeHealthChecked = document.querySelector("#shopee-health-checked");
 const shopeeHealthRefresh = document.querySelector("#shopee-health-refresh");
+const shopeeLoginOpen = document.querySelector("#shopee-login-open");
+const shopeeLoginNote = document.querySelector("#shopee-login-note");
 const SHOPEE_HEALTH_LABELS = {
   ok: "ปกติ",
   warning: "ควรตรวจสอบ",
@@ -42,6 +44,10 @@ function renderShopeeHealth(item) {
   shopeeHealthSummary.textContent = item.summary || "ไม่พบสถานะ";
   shopeeHealthDetail.textContent = item.detail || "ยังไม่มีรายละเอียดการทำงาน";
   shopeeHealthChecked.textContent = `ตรวจ ${formatHealthCheckedAt(item.checked_at)}`;
+  shopeeLoginOpen.classList.toggle(
+    "hidden",
+    status !== "error" && !item.requires_login,
+  );
 }
 
 async function loadShopeeHealth() {
@@ -70,6 +76,52 @@ async function loadShopeeHealth() {
   } finally {
     shopeeHealthRefresh.disabled = false;
     shopeeHealthRefresh.textContent = "ตรวจใหม่";
+  }
+}
+
+async function openShopeeLogin() {
+  const loginWindow = window.open("about:blank", "_blank");
+  if (!loginWindow) {
+    shopeeLoginNote.textContent = "เบราว์เซอร์บล็อกหน้าต่างใหม่ กรุณาอนุญาต Pop-up แล้วลองอีกครั้ง";
+    shopeeLoginNote.classList.remove("hidden");
+    return;
+  }
+  loginWindow.document.title = "กำลังเปิด Shopee Login";
+  loginWindow.document.body.textContent = "กำลังเปิดหน้าเข้าสู่ระบบ Shopee บน Pi…";
+  shopeeLoginOpen.disabled = true;
+  shopeeLoginOpen.textContent = "กำลังเปิด…";
+  shopeeLoginNote.classList.add("hidden");
+  try {
+    const response = await fetch("/api/shopee/login-session", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+    });
+    if (response.status === 401) {
+      loginWindow.close();
+      window.location.assign("/login");
+      return;
+    }
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "เปิดหน้าล็อกอินไม่สำเร็จ");
+    shopeeLoginNote.textContent =
+      `เปิด VNC แล้ว ระบบจะปิดอัตโนมัติภายใน ${payload.expires_minutes} นาที`;
+    shopeeLoginNote.classList.remove("hidden");
+    window.setTimeout(() => {
+      loginWindow.opener = null;
+      loginWindow.location.replace(payload.url);
+    }, 3500);
+  } catch (error) {
+    loginWindow.close();
+    shopeeLoginNote.textContent = error.message || "เปิดหน้าล็อกอินไม่สำเร็จ";
+    shopeeLoginNote.classList.remove("hidden");
+  } finally {
+    shopeeLoginOpen.disabled = false;
+    shopeeLoginOpen.textContent = "เปิดหน้าเข้าสู่ระบบ Shopee";
   }
 }
 
@@ -352,5 +404,6 @@ form.addEventListener("submit", async (event) => {
 });
 
 shopeeHealthRefresh.addEventListener("click", loadShopeeHealth);
+shopeeLoginOpen.addEventListener("click", openShopeeLogin);
 loadShopeeHealth();
 window.setInterval(loadShopeeHealth, 60_000);

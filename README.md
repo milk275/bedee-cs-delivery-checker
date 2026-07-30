@@ -60,6 +60,46 @@ Apps Script, Supabase, รายงานรายชั่วโมง แล�
 SHOPEE_REPORT_HOST_PATH=/home/your-user/kleanandkare-shopee/sales-reports
 ```
 
+## เปิดเข้าสู่ระบบ Shopee เมื่อ session หมดอายุ
+
+เมื่อบอทตรวจพบว่า Shopee session หมดอายุ หน้าแรกจะแสดงปุ่ม
+**เปิดหน้าเข้าสู่ระบบ Shopee** ให้เจ้าหน้าที่เปิด Chromium ของโปรเจกต์นี้ผ่าน
+noVNC และกรอก OTP ได้เอง โดยไม่ต้องเปิด VNC สู่ Internet สาธารณะ
+
+บน Raspberry Pi ให้ตั้งค่า path ที่ container ใช้ส่งคำขอ และ URL noVNC ที่ผูกกับ
+Tailscale IP ของ Pi:
+
+```dotenv
+SHOPEE_CONTROL_HOST_PATH=/home/your-user/bedee-cs-control
+SHOPEE_VNC_URL=http://100.x.x.x:6081/vnc.html?autoconnect=1&resize=scale&reconnect=1
+SHOPEE_VNC_WINDOW_MINUTES=20
+```
+
+สร้าง control directory ให้ UID/GID `10001` ของ container เขียนได้ แล้วติดตั้ง
+ตัวเฝ้ารอคำขอบน host:
+
+```bash
+sudo install -d -o 10001 -g 10001 -m 0700 /home/your-user/bedee-cs-control
+sudo install -m 0644 deploy/systemd/bedee-shopee-login.path /etc/systemd/system/
+sudo install -m 0644 deploy/systemd/bedee-shopee-login.service /etc/systemd/system/
+sudo install -m 0644 deploy/systemd/bedee-shopee-login-stop.service /etc/systemd/system/
+sudo install -m 0644 deploy/systemd/bedee-shopee-login-stop.timer /etc/systemd/system/
+sudo install -d -m 0755 /etc/systemd/system/kleanandkare-shopee-report.service.d
+sudo install -m 0644 \
+  deploy/systemd/kleanandkare-shopee-report.service.d/bedee-login.conf \
+  /etc/systemd/system/kleanandkare-shopee-report.service.d/
+sudo install -d -m 0755 /etc/systemd/system/kleanandkare-shopee-vnc.service.d
+sudo install -m 0644 \
+  deploy/systemd/kleanandkare-shopee-vnc.service.d/bedee-login.conf \
+  /etc/systemd/system/kleanandkare-shopee-vnc.service.d/
+sudo systemctl daemon-reload
+sudo systemctl enable --now bedee-shopee-login.path
+```
+
+เครื่องของเจ้าหน้าที่ต้องเชื่อมต่อ Tailscale network เดียวกับ Pi ก่อนเปิดปุ่ม
+ระบบจะปิด noVNC และ browser session อัตโนมัติหลัง 20 นาที ปุ่มนี้อยู่หลังหน้า
+PIN, จำกัดความถี่ และส่งได้เพียงคำสั่งเปิดหน้าล็อกอินที่กำหนดไว้เท่านั้น
+
 > หากทดสอบผ่าน HTTP ในเครื่อง ให้ตั้ง `WEB_COOKIE_SECURE=false` ชั่วคราว
 > แต่ production ที่เป็น HTTPS ต้องใช้ `true`
 

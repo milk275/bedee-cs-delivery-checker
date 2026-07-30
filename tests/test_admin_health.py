@@ -71,3 +71,35 @@ def test_datetime_formatter_does_not_expose_raw_invalid_values():
 def test_datetime_formatter_always_uses_thailand_time():
     assert _format_datetime("2026-07-24T08:15:00+00:00") == "24/07/2026 15:15 น."
     assert datetime.now(THAILAND_TZ).utcoffset() == timedelta(hours=7)
+
+
+def test_shopee_session_expiry_requests_login(tmp_path, monkeypatch):
+    configured = settings(tmp_path)
+    configured.shopee_report_directory.mkdir(parents=True)
+    (configured.shopee_report_directory / "automation-status.json").write_text(
+        json.dumps(
+            {
+                "status": "error",
+                "code": "session_expired",
+                "checked_at": datetime.now(THAILAND_TZ).isoformat(),
+            }
+        ),
+        encoding="utf-8",
+    )
+    service = AdminHealthService(configured)
+    monkeypatch.setattr(
+        service,
+        "_latest_shopee_download",
+        lambda: datetime.now(THAILAND_TZ),
+    )
+    monkeypatch.setattr(
+        service,
+        "_supabase_latest",
+        lambda *_args: {"imported_at": datetime.now(THAILAND_TZ).isoformat()},
+    )
+
+    result = service._check_shopee_sync()
+
+    assert result.status == "error"
+    assert result.requires_login is True
+    assert result.summary == "ต้องเข้าสู่ระบบ Shopee ใหม่"
