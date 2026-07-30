@@ -166,6 +166,7 @@ def test_dashboard_contains_shopee_health_card(tmp_path):
     assert b'id="shopee-health-card"' in page.data
     assert b'id="shopee-login-timeline"' in page.data
     assert b'id="shopee-login-verify"' in page.data
+    assert b'id="shopee-login-open"' in page.data
     assert "Shopee Bot".encode() in page.data
 
 

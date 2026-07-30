@@ -50,10 +50,7 @@ function renderShopeeHealth(item) {
     ? `เข้าสู่ระบบล่าสุด ${formatHealthCheckedAt(item.last_login_at)} · คาดว่าจะยืนยัน OTP อีกครั้ง ${formatHealthCheckedAt(item.next_login_at)}`
     : "ยังไม่มีประวัติเข้าสู่ระบบล่าสุด ระบบจะบันทึกหลังล็อกอินใหม่และบอทตรวจสอบสำเร็จ";
   shopeeHealthChecked.textContent = `ตรวจ ${formatHealthCheckedAt(item.checked_at)}`;
-  shopeeLoginOpen.classList.toggle(
-    "hidden",
-    status !== "error" && !item.requires_login,
-  );
+  shopeeLoginOpen.classList.remove("hidden");
   shopeeLoginVerify.classList.toggle("hidden", !item.requires_login);
 }
 
