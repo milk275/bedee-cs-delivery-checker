@@ -4,6 +4,7 @@ from pathlib import Path
 from werkzeug.security import generate_password_hash
 
 from klean_pod_checker.config import Settings
+from klean_pod_checker.models import JobResult
 from klean_pod_checker.webapp import create_app
 
 
@@ -168,6 +169,56 @@ def test_dashboard_contains_shopee_health_card(tmp_path):
     assert b'id="shopee-login-verify"' in page.data
     assert b'id="shopee-login-open"' in page.data
     assert "Shopee Bot".encode() in page.data
+
+
+def test_explicit_kex_tracking_search_skips_mapping_refresh(tmp_path):
+    class DirectKexSearch:
+        def __init__(self):
+            self.calls = []
+
+        def search(self, order_number, carrier):
+            self.calls.append((order_number, carrier))
+            return JobResult(
+                order_number=order_number,
+                found=True,
+                status_code="POD",
+                status_th="พัสดุจัดส่งสำเร็จ",
+                delivered=True,
+                checked_at="2026-08-04T15:00:00+07:00",
+            )
+
+    def mapping_refresh_should_not_run():
+        raise AssertionError("explicit KEX tracking must not refresh mappings")
+
+    class MappingsShouldNotRun:
+        def get_tracking_refs(self, _order_number):
+            raise AssertionError("explicit KEX tracking must not look up mappings")
+
+        def get_order_for_tracking(self, _tracking_number):
+            raise AssertionError("explicit KEX tracking must not look up mappings")
+
+    search = DirectKexSearch()
+    configured_app = create_app(
+        settings=settings(tmp_path),
+        search_service=search,
+        sheet_writer=DisabledWriter(),
+        mapping_store=MappingsShouldNotRun(),
+        status_cache=FakeStatusCache(),
+        multiple_tracking_sync=mapping_refresh_should_not_run,
+        admin_health_service=FakeAdminHealth(),
+    )
+    configured_app.config["TESTING"] = True
+    client = configured_app.test_client()
+    client.post("/login", data={"pin": "safe-test-pin"})
+
+    response = client.post(
+        "/api/check",
+        json={"order": "ANBL000012743", "carrier": "kex"},
+    )
+
+    assert response.status_code == 200
+    assert search.calls == [("ANBL000012743", "kex")]
+    assert response.get_json()["result"]["carrier"] == "KEX"
 
 
 def test_authenticated_cs_can_request_tailscale_vnc_login_window(tmp_path):

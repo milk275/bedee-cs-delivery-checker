@@ -541,20 +541,23 @@ def create_app(
         raw_order = str(payload.get("order", ""))
         searched_candidate = re.sub(r"\s+", "", raw_order).lstrip("#").upper()
         searched_with_tracking = bool(KEX_TRACKING_RE.fullmatch(searched_candidate))
-        try:
-            # Refresh the grouped-tracking tab before every CS search so a
-            # newly added split shipment is available immediately.
-            sync_multiple_tracking()
-        except (OSError, ValueError, SupabaseMappingError, requests.RequestException):
-            # Keep the last successfully imported mapping available if Google
-            # Sheets is temporarily unavailable; live carrier checking still
-            # proceeds normally.
-            app.logger.warning("Grouped tracking sheet refresh failed", exc_info=True)
-        try:
-            group = _tracking_group_for_input(mappings, raw_order)
-        except SupabaseMappingError:
-            app.logger.warning("Supabase mapping lookup failed", exc_info=True)
-            group = None
+        requested_carrier = str(payload.get("carrier", "auto")).strip().lower()
+        direct_kex_lookup = requested_carrier == "kex" and searched_with_tracking
+        group = None
+        if not direct_kex_lookup:
+            try:
+                # Refresh the grouped-tracking tab before a mapped or automatic
+                # search so newly added split shipments are available immediately.
+                sync_multiple_tracking()
+            except (OSError, ValueError, SupabaseMappingError, requests.RequestException):
+                # Keep the last successfully imported mapping available if Google
+                # Sheets is temporarily unavailable; live carrier checking still
+                # proceeds normally.
+                app.logger.warning("Grouped tracking sheet refresh failed", exc_info=True)
+            try:
+                group = _tracking_group_for_input(mappings, raw_order)
+            except SupabaseMappingError:
+                app.logger.warning("Supabase mapping lookup failed", exc_info=True)
         display_order_number: str | None = None
         try:
             if group:
@@ -584,7 +587,6 @@ def create_app(
                 order_number, carrier, result = entries[0]
                 display_order_number = group_order
             else:
-                requested_carrier = str(payload.get("carrier", "auto")).strip().lower()
                 if requested_carrier == "auto":
                     order_number = normalize_auto_search_input(raw_order)
                     result, carrier = _search_with_carrier_priority(service, order_number)
